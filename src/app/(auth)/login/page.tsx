@@ -1,7 +1,41 @@
 "use client";
+import axios from 'axios';
+import { useState } from 'react';
+import { api } from '@/lib/axios';
+import { useRouter } from 'next/navigation';
 import { EmailIcon, LockIcon } from '../../../../public/icons'
+import { LoaderIcon } from '../../../../public/icons/LoaderIcon';
 
-function page() {
+function Page() {
+  const router = useRouter();
+  const [isLoading, setisLoading] = useState(false);
+  const [authUser, setAuthUser] = useState({email: "", password: ""});
+
+  const handleSubmit = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    setisLoading(true);
+
+    try {
+      const response = await api.post("/login" , {
+        email: authUser.email,
+        password: authUser.password,
+      });
+
+      console.log(response.data);
+
+      router.push('/dashboard');
+    } catch (error) {
+      if(axios.isAxiosError(error)) {
+        console.error(
+          error.response?.data?.message ?? "Login Failed",
+        )
+      } else {
+        console.log("Unexpected error occurs while login:", error);
+      }
+    } finally {
+      setisLoading(false);
+    }
+  }
   return (
     <div className='bg-background min-h-screen flex justify-center items-center font-inter'>
       <div className='w-108.75 h-121.5 rounded-2xl p-6 bg-[#181818] flex flex-col items-center justify-start border-t-2 border-[#2F2F2F] shadow-md'>
@@ -25,7 +59,9 @@ function page() {
                   <EmailIcon className='text-[#868686] w-4 h-4'/>
                 </div>
                 <input
-                  type='text' 
+                  type='text'
+                  value={authUser.email}
+                  onChange={(e) => setAuthUser((prev) => ({...prev, email: e.target.value}))} 
                   placeholder='Email address'
                   autoComplete='off'
                   className='w-full bg-none outline-none text-[12px] text-[#868686] font-medium leading-0'
@@ -39,6 +75,8 @@ function page() {
                 </div>
                 <input 
                   type='password'
+                  value={authUser.password}
+                  onChange={(e) => setAuthUser((prev) => ({...prev, password: e.target.value}))}
                   placeholder='Password'
                   autoComplete='new-password'
                   className='w-full outline-none bg-none text-[12px] text-[#868686] font-medium leading-0'
@@ -47,9 +85,18 @@ function page() {
 
               {/* button */}
               <button
+                type='submit'
+                disabled={isLoading}
+                onClick={handleSubmit}
                 className='w-full h-9.5 bg-[#0174DC] cursor-pointer rounded-lg text-[12px] p-2.5 flex items-center justify-center hover:bg-[#0174DC]/80 transition-all duration-300 shadow-md'
               >
-                Login
+                {
+                  isLoading ? (
+                    <LoaderIcon className='rotate-180'/>
+                  ) : (
+                    "Login"
+                  )
+                }
               </button>
             </div>
           </div>
@@ -59,4 +106,4 @@ function page() {
   )
 }
 
-export default page
+export default Page
