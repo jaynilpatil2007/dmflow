@@ -21,7 +21,8 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  sessions Sessions[]
+  sessions          Sessions[]
+  instagramAccounts InstagramAccount[]
 }
 
 model Sessions {
@@ -36,4 +37,42 @@ model Sessions {
 
   @@index([userId])
   @@index([expiresAt])
+}
+
+model InstagramAccount {
+  id Int @id @default(autoincrement())
+
+  instagramUserId String @unique
+  username        String
+
+  encryptedAccessToken String
+  tokenExpiresAt       DateTime
+
+  userId Int
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  automations Automation[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model Automation {
+  id Int @id @default(autoincrement())
+
+  name             String
+  triggeredKeyword String
+  replyMessage     String
+  isActive         Boolean @default(true)
+
+  instagramAccountId Int
+  instagramAccount   InstagramAccount @relation(fields: [instagramAccountId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([triggeredKeyword, instagramAccountId])
+  @@index([instagramAccountId, isActive])
 }
